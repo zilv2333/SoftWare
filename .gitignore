@@ -1,0 +1,4 @@
+dockerimages/
+docker-compose.yml
+config.py
+.venv
