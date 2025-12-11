@@ -269,4 +269,52 @@ const handlePasswordChangeSuccess = () => {
 .list-group-item:not(:last-child) {
   border-bottom: 1px solid #e9ecef !important;
 }
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1.75rem 0.5rem;
+  }
+
+  .card {
+    border-radius: 8px;
+  }
+
+  .form-control-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  /* 移动端表单控件优化 */
+  input.form-control {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+}
+
+/* 中屏适配 */
+@media (min-width: 768px) {
+  .form-control-md {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  .btn-md {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* 防止移动端点击时出现蓝色高亮 */
+button, input, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 优化移动端滚动体验 */
+.profile-container {
+  -webkit-overflow-scrolling: touch;
+}
 </style>
