@@ -144,7 +144,7 @@ class UserManager:
             cursor.execute("""
             SELECT COUNT(id) as registerCount 
                 FROM users 
-                WHERE DATE(created_at) = CURRENT_DATE;"""
+                WHERE DATE_TRUNC('day', created_at) = CURRENT_DATE;"""
                            )
             return cursor.fetchone()
 
@@ -165,7 +165,7 @@ class UserManager:
                 CROSS JOIN 
                     (SELECT 0 AS a UNION ALL SELECT 1) AS c
             ) AS dates
-            LEFT JOIN users lr ON DATE(lr.created_at) = dates.date
+            LEFT JOIN users lr ON DATE_TRUNC('day', lr.created_at) = dates.date
             WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL 6 DAY AND CURRENT_DATE
             GROUP BY dates.date
             ORDER BY dates.date DESC;
@@ -220,7 +220,7 @@ class LoginManager:
             cursor.execute("""
             SELECT COUNT(distinct user_id) as loginCount 
                 FROM login_records 
-                WHERE DATE(login_time) = CURRENT_DATE;"""
+                WHERE DATE_TRUNC('day', login_time)= CURRENT_DATE;"""
                            )
             return cursor.fetchone()
 
@@ -241,7 +241,7 @@ class LoginManager:
                 CROSS JOIN 
                     (SELECT 0 AS a UNION ALL SELECT 1) AS c
             ) AS dates
-            LEFT JOIN login_records lr ON DATE(lr.login_time) = dates.date
+            LEFT JOIN login_records lr ON DATE_TRUNC('day', lr.login_time) = dates.date
             WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL 6 DAY AND CURRENT_DATE
             GROUP BY dates.date
             ORDER BY dates.date DESC;
