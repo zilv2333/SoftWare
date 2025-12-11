@@ -1,3 +1,4 @@
+import os
 
 
 def create_app():
@@ -60,6 +61,9 @@ def create_app():
     get_db()
 
     # ... 其他配置（如数据库）
+    os.makedirs(config.VIDEO_FOLDER, exist_ok=True)
+    os.makedirs(config.THUMBNAIL_FOLDER,exist_ok=True)
+    os.makedirs(config.UPLOAD_FOLDER,exist_ok=True)
 
     CORS(app)  # 启用CORS支持[1,4](@ref)
     return app
