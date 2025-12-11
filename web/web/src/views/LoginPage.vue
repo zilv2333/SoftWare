@@ -229,10 +229,76 @@ body {
   text-decoration: underline;
 }
 
-@media (max-width: 576px) {
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .login {
+    align-items: center;
+    /* padding-top: auto; */
+
+  }
+
+  .container {
+    padding: 0;
+  }
+
   .auth-container {
-    padding: 25px;
-    margin: 20px;
+    padding: 25px 20px;
+    margin: 10px 20px;
+    width: calc(100% - 40px);
+  }
+
+  .form-title {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 20px 15px;
+    margin: 5px 10px;
+    width: calc(100% - 20px);
+    border-radius: 10px;
+  }
+
+  .form-title {
+    font-size: 1.4rem;
+  }
+
+  .btn-sports {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+
+  .form-control {
+    padding: 12px 15px;
+  }
+}
+
+/* 横屏优化 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .login {
+    align-items: flex-start;
+    padding-top: 10px;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .auth-container {
+    margin: 10px auto;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

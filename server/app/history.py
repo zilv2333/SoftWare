@@ -78,7 +78,7 @@ def history_detail(id):
         if not user:
             return error_response('用户不存在', 404)
 
-        history = system.history_manager.get_history_records_by_id(int(id))[0]
+        history = system.history_manager.get_history_records_by_id(int(id))
 
         data={
             'project': history['project'],
@@ -89,6 +89,8 @@ def history_detail(id):
 
         return success_response(data, 200)
     except Exception as ex:
+        print(ex)
+        print(system.history_manager.get_history_records_by_id(int(id)))
         return error_response(str(ex), 500)
 
 

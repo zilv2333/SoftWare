@@ -147,11 +147,16 @@
 
 .table-section {
   margin-top: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height:580px; /* 最小高度 */
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
+  /* height: 600px; */
 }
 
 .history-table th,
@@ -246,12 +251,13 @@
 
 /* 分页样式 */
 .pagination {
-  display: flex;
+   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 20px 0;
-  margin-top: auto;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .page-btn {
@@ -262,6 +268,7 @@
   color: #606266;
   cursor: pointer;
   font-size: 14px;
+  min-width: 80px;
   transition: all 0.2s;
 }
 
@@ -395,3 +402,138 @@
   white-space: pre-line;
   font-size: 14px;
 }
+
+/* 移动端适配样式 */
+@media (max-width: 768px) {
+    .history-wrapper {
+        flex-direction: column;
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .history {
+        padding: 15px;
+        min-height: auto;
+        border-radius: 8px;
+
+    }
+
+    .calendar-widget {
+        width: 100%;
+        order: -1; /* 日历放在顶部 */
+        margin-bottom: 15px;
+    }
+
+    .page-title {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .search-section {
+        flex-direction: column;
+        gap: 15px;
+
+    }
+
+    .search-item {
+        width: 100%;
+    }
+
+    .search-item select,
+    .search-item input {
+        min-width: auto;
+        width: 100%;
+    }
+    .table-section {
+      margin-top: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height:400px; /* 最小高度 */
+    }
+
+    /* 表格在移动端改为卡片式 */
+
+
+    .mobile-history-list {
+        display: block;
+    }
+    .history-table td {
+    color: #606266;
+    font-size: 10px;
+  }
+
+    .history-card {
+        background: #fff;
+        border: 1px solid #ebeef5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .card-title {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .card-time {
+        font-size: 12px;
+        color: #909399;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .page-btn {
+        flex: 1;
+        text-align: center;
+        min-width: 100px;
+    }
+
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+        margin: 10px;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .modal-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .modal-label {
+        min-width: auto;
+        margin-bottom: 5px;
+    }
+
+    .modal-score {
+        font-size: 20px;
+        padding: 3px 10px;
+    }
+}
+

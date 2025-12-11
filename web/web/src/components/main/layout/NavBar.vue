@@ -8,7 +8,7 @@
         <!-- <div class="logo-placeholder">{{ title }}</div> -->
       </div>
 
-      <!-- 导航菜单 -->
+      <!-- 电脑端导航菜单 -->
       <div class="navbar-menu">
         <ul class="navbar-nav">
           <li v-for="item in navItems" :key="item.id" class="nav-item">
@@ -26,6 +26,18 @@
 
       <!-- 右侧功能区 -->
       <div class="navbar-actions">
+        <!-- 移动端汉堡菜单按钮 -->
+        <button
+          class="mobile-menu-toggle"
+          :class="{ active: isMenuOpen }"
+          @click="toggleMobileMenu"
+          aria-label="导航菜单"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
         <!-- 用户信息 -->
         <div class="user-menu">
           <button class="user-toggle" @click="toggleUserMenu">
@@ -53,18 +65,34 @@
           </div>
         </div>
       </div>
+      <!-- 移动端下拉菜单 -->
+      <div class="mobile-menu" :class="{ active: isMenuOpen }">
+        <ul class="mobile-nav">
+          <li
+            v-for="item in navItems"
+            :key="item.id"
+            class="mobile-nav-item"
+          >
+            <div
+              class="mobile-nav-link"
+              :class="{ active: currentPage === item.page }"
+              @click="changePage(item.page)"
+            >
+              {{ item.name }}
+        </div>
+          </li>
+        </ul>
+      </div>
     </div>
+
+
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import './styles/NavBar.css'
 import type { NavItem } from '@/types/nav'
-
-
-
-
 
 // Props
 defineProps({
@@ -73,7 +101,7 @@ defineProps({
     default: '我的应用',
   },
   navItems: {
-    type: Array<NavItem>,
+    type: Array as () => NavItem[],
     default: () => [],
   },
   user: {
@@ -94,13 +122,26 @@ const isScrolled = ref(false)
 const isMenuOpen = ref(false)
 const isUserMenuOpen = ref(false)
 
+// 检测是否为移动端
+const isMobile = ref(window.innerWidth <= 768)
+
+// 更新屏幕尺寸
+const updateScreenSize = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
 // 方法
-
-
 const changePage = (page: string) => {
   emit('page-change', page)
-  // console.log('切换到页面:', props.currentPage)
   closeMobileMenu()
+}
+
+const toggleMobileMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value
+  // 移动端菜单打开时，关闭用户菜单
+  if (isMenuOpen.value) {
+    isUserMenuOpen.value = false
+  }
 }
 
 const closeMobileMenu = () => {
@@ -108,17 +149,27 @@ const closeMobileMenu = () => {
 }
 
 const toggleUserMenu = () => {
-  isUserMenuOpen.value = !isUserMenuOpen.value
+  // 移动端优先关闭移动菜单
+  if (isMenuOpen.value && isMobile.value) {
+    isMenuOpen.value = false
+    setTimeout(() => {
+      isUserMenuOpen.value = !isUserMenuOpen.value
+    }, 300)
+  } else {
+    isUserMenuOpen.value = !isUserMenuOpen.value
+  }
 }
 
 const handleMenuClick = (action: string) => {
   emit('menu-click', action)
   isUserMenuOpen.value = false
+  closeMobileMenu()
 }
 
 const handleLogout = () => {
   emit('logout')
   isUserMenuOpen.value = false
+  closeMobileMenu()
 }
 
 // 滚动监听
@@ -128,24 +179,55 @@ const handleScroll = () => {
 
 // 点击外部关闭菜单
 const handleClickOutside = (event: MouseEvent) => {
-  if (!(event.target as HTMLElement).closest('.user-menu')) {
-    isUserMenuOpen.value = false;
+  const target = event.target as HTMLElement
+  const userMenu = target.closest('.user-menu')
+  const mobileToggle = target.closest('.mobile-menu-toggle')
+  const mobileMenu = target.closest('.mobile-menu')
+
+  if (!userMenu) {
+    isUserMenuOpen.value = false
+  }
+
+  if (!mobileToggle && !mobileMenu) {
+    closeMobileMenu()
   }
 }
+
+// 键盘事件处理
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    closeMobileMenu()
+    isUserMenuOpen.value = false
+  }
+}
+
+// 监听屏幕尺寸变化
+watch(() => isMenuOpen.value, (newVal) => {
+  if (newVal) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
 
 // 生命周期
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('resize', updateScreenSize)
   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('keydown', handleKeydown)
+  updateScreenSize() // 初始化
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', updateScreenSize)
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', handleKeydown)
+  document.body.style.overflow = '' // 清理
 })
 </script>
 
 <style scoped>
-/* 样式与之前相同，保持简洁 */
-
+/* 保持原有样式不变 */
 </style>

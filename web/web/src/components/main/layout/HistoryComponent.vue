@@ -330,7 +330,11 @@ const nextMonth = () => {
 
 // 分页相关
 const currentPage = ref(1)
-const pageSize = 10
+let pageSize = 10
+if(window.innerWidth<=700){
+  pageSize=5
+}
+
 // 原始数据列表（本地模拟数据，后续可删除）
 const rawHistoryList = ref<HistoryItem[]>([
   // {
