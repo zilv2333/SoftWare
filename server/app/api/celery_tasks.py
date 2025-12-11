@@ -1,13 +1,9 @@
 # app/api/celery_tasks.py
 from app.celery_app import celery_app
-import os
-import json
-from app.api import process_side, process_front
-from app import config
-from app.database import get_db
 
-# 获取系统实例
-system = get_db(config.DataBase_Name)
+from app.api import process_side, process_front
+
+
 
 
 @celery_app.task(bind=True, name='process_video_task')

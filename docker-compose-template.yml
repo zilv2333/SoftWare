@@ -1,10 +1,15 @@
 services:
+  base:
+    build:
+      context: ./server
+      dockerfile: docker/Dockerfile
+    image: software-base:latest  # 指定镜像名称和标签
   front:
     build:
       context: ./web  # 构建上下文为当前目录[citation:1]
       dockerfile: docker/Dockerfile  # 指定 Dockerfile 路径[citation:6]
     image: vue-app:1.0  # 支持环境变量设置标签[citation:4]
-    container_name: sofeware-web
+    container_name: software-web
     ports:
       - "80:80"  # 主机端口:容器端口[citation:1]
     networks:
@@ -20,11 +25,13 @@ services:
 
   # 如果需要后端 API，可以在这里添加
   backend:
-    build:
+    build: 
       context: ./server
-      dockerfile: docker/server/Dockerfile
+      dockerfile: docker/server/Dockerfile      
+      cache_from:
+        - sofware-base:latest
     image: server:1.0
-    container_name: sofeware-server
+    container_name: software-server
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=mysql
@@ -37,10 +44,10 @@ services:
       - GS_DATABASE=postgres
       - GS_HOST=opengauss_db
 
-      - DataBase=opengauss
+      - DataBase=mysql
 
-      - DIFY_API_URL=your_url
-      - DIFY_API_KEY=your_key
+      - DIFY_API_URL=
+      - DIFY_API_KEY=
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     networks:
@@ -54,7 +61,7 @@ services:
 
   mysql:
     image: mysql:8.0.17
-    container_name: sofeware-mysql
+    container_name: software-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: lyxsb666
@@ -76,7 +83,7 @@ services:
 
   opengauss_db:
     image: opengauss/opengauss:7.0.0-RC2.B015-openEuler22.03
-    container_name: sofeware-opengauss
+    container_name: software-opengauss
     restart: always
     environment:
       - GS_PASSWORD=YourStrongPassword123!
@@ -100,7 +107,7 @@ services:
       - vue-network
   redis:
     image: redis:7-alpine
-    container_name: sofeware_redis
+    container_name: software_redis
     # ports:
     #   - "6379:6379"
     volumes:
@@ -111,7 +118,9 @@ services:
   celery-worker:
     build:
       context: ./server
-      dockerfile: docker/celery/Dockerfile
+      dockerfile: docker/celery/Dockerfile     
+      cache_from:
+        - sofeware-base:latest
     container_name: pullup_celery_worker
     environment:
       - FLASK_ENV=production
@@ -127,8 +136,8 @@ services:
 
       - DataBase=opengauss
 
-      - DIFY_API_URL=your_url
-      - DIFY_API_KEY=your_key
+      - DIFY_API_URL=
+      - DIFY_API_KEY=
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:

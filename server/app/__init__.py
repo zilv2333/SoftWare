@@ -1,19 +1,20 @@
-from datetime import timedelta
 
-from flask import Flask, jsonify
-from flask_cors import CORS  # 解决跨域问题
-from flask_jwt_extended import JWTManager
-
-from .auth import auth_bp
-from .feedback import feedback_bp
-from .upload import upload_bp
-from .example import example_bp
-from .history import history_bp
-from .train_plan import train_bp
-from .admin import admin_bp
-from . import config
 
 def create_app():
+    from datetime import timedelta
+
+    from flask import Flask, jsonify
+    from flask_cors import CORS  # 解决跨域问题
+    from flask_jwt_extended import JWTManager
+
+    from .auth import auth_bp
+    from .feedback import feedback_bp
+    from .upload import upload_bp
+    from .example import example_bp
+    from .history import history_bp
+    from .train_plan import train_bp
+    from .admin import admin_bp
+    from . import config
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = config.SECRET_KEY
