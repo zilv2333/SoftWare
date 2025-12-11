@@ -188,10 +188,22 @@ def delete_video(id):
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
 
-        res=system.video_manager.delete_video_record(id)
-        if res:
-            return success_response(data=res,message='删除成功')
-        return error_response(message='删除失败')
+        try:
+            d=system.video_manager.get_video_records_by_id(id)
+            url=d['url']
+            thumbnail_url=d['thumbnail']
+            file_name=config.VIDEO_FOLDER+'/'+url.split('/')[-1]
+            thumbnail_name=config.THUMBNAIL_FOLDER+'/'+thumbnail_url.split('/')[-1]
+            if os.path.exists(thumbnail_name):
+                os.remove(thumbnail_name)
+            if os.path.exists(file_name):
+                os.remove(file_name)
+            res=system.video_manager.delete_video_record(id)
+            if res:
+                return success_response(data=res,message='删除成功')
+            return error_response(message='删除失败')
+        except Exception as e:
+            return error_response(str(e), 500)
     except Exception as e:
         return error_response(str(e), 500)
 

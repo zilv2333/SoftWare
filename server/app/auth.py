@@ -235,6 +235,8 @@ def refresh():
         if not user:
             return error_response('用户不存在', 404)
 
+
+        system.login_manager.add_login_record(user['id'])
         access_token = create_access_token(identity=str(user['id']))
         return success_response(
 

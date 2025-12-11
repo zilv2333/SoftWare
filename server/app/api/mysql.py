@@ -397,6 +397,15 @@ class ExampleVideo:
             conn.rollback()  # 回滚事务
             return False
 
+    def get_video_records_by_id(self, id):
+        """<UNK>ID<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+            SELECT id,url,thumbnail FROM video_records WHERE id = %s
+                """,(id,))
+            return cursor.fetchone()
+
 
 class TrainingPlanManager:
     """训练计划管理（新增功能）"""

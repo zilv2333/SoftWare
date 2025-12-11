@@ -1,9 +1,9 @@
 # app/api/celery_tasks.py
+import os
+
 from app.celery_app import celery_app
 
 from app.api import process_side, process_front
-
-
 
 
 @celery_app.task(bind=True, name='process_video_task')
@@ -12,6 +12,11 @@ def process_video_task(self, task_id, front_video_path, side_video_path, user_id
     Celery任务：处理视频分析
     """
     try:
+        files_to_delete = []
+        if front_video_path and os.path.exists(front_video_path):
+            files_to_delete.append(front_video_path)
+        if side_video_path and os.path.exists(side_video_path):
+            files_to_delete.append(side_video_path)
 
         # 更新任务进度
         self.update_state(
@@ -60,6 +65,14 @@ def process_video_task(self, task_id, front_video_path, side_video_path, user_id
         # 这里可以添加保存结果到数据库的逻辑
         # save_result_to_db(user_id, task_id, result, f'引体向上{num}个')
 
+        for file_path in files_to_delete:
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
+            except Exception as e:
+                pass
+
         return {
             'status': 'completed',
             'result': result,
@@ -68,6 +81,14 @@ def process_video_task(self, task_id, front_video_path, side_video_path, user_id
         }
 
     except Exception as e:
+        try:
+            for file_path in [front_video_path, side_video_path]:
+                if file_path and os.path.exists(file_path):
+                    os.remove(file_path)
+
+        except Exception as cleanup_error:
+            pass
+
         # 记录错误
         self.update_state(
             state='FAILURE',
