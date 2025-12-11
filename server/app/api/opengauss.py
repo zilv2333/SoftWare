@@ -156,14 +156,11 @@ class UserManager:
                 dates.date AS register_date,
                 COUNT(distinct lr.id) AS registerCount 
             FROM (
-                SELECT CURRENT_DATE - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS date
-                FROM 
-                    (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 
-                     UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS a
-                CROSS JOIN 
-                    (SELECT 0 AS a UNION ALL SELECT 1) AS b
-                CROSS JOIN 
-                    (SELECT 0 AS a UNION ALL SELECT 1) AS c
+                SELECT generate_series(
+                    CURRENT_DATE - INTERVAL '6 days',
+                    CURRENT_DATE,
+                    INTERVAL '1 day'
+                )::DATE AS date
             ) AS dates
             LEFT JOIN users lr ON DATE_TRUNC('day', lr.created_at) = dates.date
             WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL 6 DAY AND CURRENT_DATE
@@ -232,14 +229,11 @@ class LoginManager:
                 dates.date AS login_date,
                 COUNT(distinct lr.user_id) AS loginCount 
             FROM (
-                SELECT CURRENT_DATE - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS date
-                FROM 
-                    (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 
-                     UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS a
-                CROSS JOIN 
-                    (SELECT 0 AS a UNION ALL SELECT 1) AS b
-                CROSS JOIN 
-                    (SELECT 0 AS a UNION ALL SELECT 1) AS c
+                SELECT generate_series(
+                    CURRENT_DATE - INTERVAL '6 days',
+                    CURRENT_DATE,
+                    INTERVAL '1 day'
+                )::DATE AS date
             ) AS dates
             LEFT JOIN login_records lr ON DATE_TRUNC('day', lr.login_time) = dates.date
             WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL 6 DAY AND CURRENT_DATE
