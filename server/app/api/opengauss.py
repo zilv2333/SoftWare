@@ -142,7 +142,7 @@ class UserManager:
         conn = self.db_connection.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("""
-            SELECT COUNT(id) as registerCount 
+            SELECT COUNT(id) as registercount 
                 FROM users 
                 WHERE DATE_TRUNC('day', created_at) = CURRENT_DATE;"""
                            )
@@ -154,7 +154,7 @@ class UserManager:
         with conn.cursor() as cursor:
             cursor.execute("""SELECT 
                 dates.date AS register_date,
-                COUNT(distinct lr.id) AS registerCount 
+                COUNT(distinct lr.id) AS registercount 
             FROM (
                 SELECT generate_series(
                     CURRENT_DATE - INTERVAL '6 days',
@@ -163,7 +163,7 @@ class UserManager:
                 )::DATE AS date
             ) AS dates
             LEFT JOIN users lr ON DATE_TRUNC('day', lr.created_at) = dates.date
-            WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL 6 DAY AND CURRENT_DATE
+            WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL '6' DAY AND CURRENT_DATE
             GROUP BY dates.date
             ORDER BY dates.date DESC;
                            """)
@@ -215,7 +215,7 @@ class LoginManager:
         conn = self.db_connection.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("""
-            SELECT COUNT(distinct user_id) as loginCount 
+            SELECT COUNT(distinct user_id) as logincount 
                 FROM login_records 
                 WHERE DATE_TRUNC('day', login_time)= CURRENT_DATE;"""
                            )
@@ -227,7 +227,7 @@ class LoginManager:
         with conn.cursor() as cursor:
             cursor.execute("""SELECT 
                 dates.date AS login_date,
-                COUNT(distinct lr.user_id) AS loginCount 
+                COUNT(distinct lr.user_id) AS logincount 
             FROM (
                 SELECT generate_series(
                     CURRENT_DATE - INTERVAL '6 days',
@@ -236,7 +236,7 @@ class LoginManager:
                 )::DATE AS date
             ) AS dates
             LEFT JOIN login_records lr ON DATE_TRUNC('day', lr.login_time) = dates.date
-            WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL 6 DAY AND CURRENT_DATE
+            WHERE dates.date BETWEEN CURRENT_DATE - INTERVAL '6' DAY AND CURRENT_DATE
             GROUP BY dates.date
             ORDER BY dates.date DESC;
                            """)

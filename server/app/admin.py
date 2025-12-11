@@ -243,8 +243,8 @@ def dashboard_stats():
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
-        loginCount=system.login_manager.get_login_count_today()['loginCount']
-        registerCount=system.user_manager.get_register_count_today()['registerCount']
+        loginCount=system.login_manager.get_login_count_today()['logincount']
+        registerCount=system.user_manager.get_register_count_today()['registercount']
         pendingFeedback=len(system.feedback_manager.get_pending_feedback())
         mediaFiles=len(system.video_manager.get_all_video_records())
 
@@ -257,6 +257,8 @@ def dashboard_stats():
             message='获取成功'
         )
     except Exception as e:
+        print(e)
+        print(system.login_manager.get_login_count_today())
         return error_response(str(e), 500)
 @admin_bp.route('/dashboard/chart-data', methods=['GET'])
 @jwt_required()
@@ -284,12 +286,12 @@ def dashboard_chart_data():
         loginData=[]
         dates=[]
         for c in loginCounts:
-            loginData.append(c['loginCount'])
+            loginData.append(c['logincount'])
             dates.append(c['login_date'].strftime('%m-%d'))
         registerCounts=system.user_manager.get_register_count_week()
         registerData=[]
         for c in registerCounts:
-            registerData.append(c['registerCount'])
+            registerData.append(c['registercount'])
         return success_response(data={
             'loginData': loginData,
             'registerData': registerData,

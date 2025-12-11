@@ -20,11 +20,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-
+import { useRouter } from 'vue-router';
 import Info from '@/components/admin/Info.vue'
 import LoginChart from '@/components/admin/LoginChart.vue'
 import PendingFeedbackCard from '@/components/admin/PendingFeedback.vue'
 import MediaManagement from '@/components/admin/MediaManage.vue'
+import {authAPI} from "@/utils/api";
+import {showSuccessMessage} from "@/utils/log";
 
 
 // 定义数据类型接口
@@ -389,12 +391,36 @@ const fetchData = async () => {
 
 //   const response=await
 // }
+const router = useRouter();
+const checkAuthStatus = async () => {
+  const token = localStorage.getItem('token');
 
+  if (!token) {
+    router.push('/login');
+    return;
+  }
 
+  try {
+    const data=await authAPI.verifyToken(token);
+    if(data.role!=='admin'){
+      showSuccessMessage('权限不足！',2000);
+      router.push('/main')
+    }
+
+    // Token有效，跳转到主页
+    // router.push('/main');
+  } catch (error) {
+    console.error('Token验证失败:', error);
+    // 清除无效的token
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
+  }
+};
 // ========== 组件挂载 ==========
 onMounted(async () => {
   console.log('管理员仪表板组件挂载，开始初始化数据...')
-
+  await checkAuthStatus()
   try {
     // 先初始化视频数据
     await initVideoData()

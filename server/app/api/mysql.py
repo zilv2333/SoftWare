@@ -154,7 +154,7 @@ class UserManager:
         conn = self.db_connection.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("""
-            SELECT COUNT(id) as registerCount 
+            SELECT COUNT(id) as registercount 
                 FROM users 
                 WHERE DATE(created_at) = CURDATE();"""
                            )
@@ -166,7 +166,7 @@ class UserManager:
         with conn.cursor() as cursor:
             cursor.execute("""SELECT 
                 dates.date AS register_date,
-                COUNT(distinct lr.id) AS registerCount 
+                COUNT(distinct lr.id) AS registercount 
             FROM (
                 SELECT CURDATE() - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS date
                 FROM 
@@ -232,7 +232,7 @@ class LoginManager:
         conn = self.db_connection.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("""
-            SELECT COUNT(distinct user_id) as loginCount 
+            SELECT COUNT(distinct user_id) as logincount 
                 FROM login_records 
                 WHERE DATE(login_time) = CURDATE();"""
                            )
@@ -244,7 +244,7 @@ class LoginManager:
         with conn.cursor() as cursor:
             cursor.execute("""SELECT 
                 dates.date AS login_date,
-                COUNT(distinct lr.user_id) AS loginCount 
+                COUNT(distinct lr.user_id) AS logincount 
             FROM (
                 SELECT CURDATE() - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS date
                 FROM 
