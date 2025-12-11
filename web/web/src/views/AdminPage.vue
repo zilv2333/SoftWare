@@ -14,6 +14,7 @@
     :loading="videoLoading"
     @video-upload="handleVideoUpload"
     @video-delete="handleVideoDelete"
+    @refresh="handleVideoRefresh"
   />
 </template>
 
@@ -25,34 +26,30 @@ import LoginChart from '@/components/admin/LoginChart.vue'
 import PendingFeedbackCard from '@/components/admin/PendingFeedback.vue'
 import MediaManagement from '@/components/admin/MediaManage.vue'
 
+
 // 定义数据类型接口
 interface DashboardData {
   loginCount: number
-  onlineUsers: number
+  registerCount: number
   pendingFeedback: number
   mediaFiles: number
 }
 
-interface ApiResponse<T> {
-  code: number
-  data: T
-  message: string
-  success: boolean
-}
+
 
 interface FeedbackData {
   list: any[]
-  urgentCount: number
+  urgentCount?: number
   totalCount: number
 }
 
 interface ChartData {
   loginData: number[]
-  activeData: number[]
+  registerData: number[]
   dates: string[]
   dateRange: string
   totalLogin: number
-  totalActive: number
+  totalRegister: number
 }
 
 interface VideoItem {
@@ -72,29 +69,28 @@ interface UploadFormData {
 }
 
 // API基础配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 // 响应式数据
 const dashboardData = ref<DashboardData>({
   loginCount: 0,
-  onlineUsers: 0,
+  registerCount: 0,
   pendingFeedback: 0,
   mediaFiles: 0,
 })
 
 const feedbackData = ref<FeedbackData>({
   list: [],
-  urgentCount: 0,
   totalCount: 0,
 })
 
 const chartData = ref<ChartData>({
   loginData: [],
-  activeData: [],
+  registerData: [],
   dates: [],
   dateRange: '',
   totalLogin: 0,
-  totalActive: 0,
+  totalRegister: 0,
 })
 
 const videoList = ref<VideoItem[]>([])
@@ -137,28 +133,28 @@ const apiRequest = async (url: string, options: RequestInit = {}) => {
  * 获取仪表板统计数据
  */
 const fetchDashboardStats = async () => {
-  return await apiRequest('/admin/dashboard/stats')
+  return await apiRequest('/api/admin/dashboard/stats')
 }
 
 /**
  * 获取登录图表数据
  */
 const fetchChartData = async () => {
-  return await apiRequest('/admin/dashboard/chart-data')
+  return await apiRequest('/api/admin/dashboard/chart-data')
 }
 
 /**
  * 获取待处理反馈列表
  */
 const fetchPendingFeedback = async () => {
-  return await apiRequest('/admin/feedback/pending')
+  return await apiRequest('/api/admin/feedback/pending')
 }
 
 /**
  * 获取视频列表
  */
 const fetchVideos = async () => {
-  return await apiRequest('/admin/media/videos')
+  return await apiRequest('/api/admin/media/videos')
 }
 
 /**
@@ -181,16 +177,22 @@ const uploadVideo = async (formData: FormData) => {
  * 删除视频
  */
 const deleteVideo = async (videoId: number) => {
-  return await apiRequest(`/admin/media/videos/${videoId}`, {
+  return await apiRequest(`/api/admin/media/videos/${videoId}`, {
     method: 'DELETE',
   })
 }
 
+//刷新视频
+const handleVideoRefresh=async()=>{
+  const refresh_videos =await fetchVideos();
+  videoList.value=refresh_videos.data
+
+}
 /**
  * 处理反馈
  */
 const processFeedback = async (feedbackId: number) => {
-  return await apiRequest(`/admin/feedback/${feedbackId}/process`, {
+  return await apiRequest(`/api/admin/feedback/${feedbackId}/process`, {
     method: 'PUT',
   })
 }
@@ -199,7 +201,7 @@ const processFeedback = async (feedbackId: number) => {
  * 忽略反馈
  */
 const ignoreFeedback = async (feedbackId: number) => {
-  return await apiRequest(`/admin/feedback/${feedbackId}/ignore`, {
+  return await apiRequest(`/api/admin/feedback/${feedbackId}/ignore`, {
     method: 'PUT',
   })
 }
@@ -209,9 +211,9 @@ const pendingCount = computed(() => {
   return feedbackData.value.list.filter((item) => item.status === '待处理').length
 })
 
-const urgentCount = computed(() => {
-  return feedbackData.value.list.filter((item) => item.urgent && item.status === '待处理').length
-})
+// const urgentCount = computed(() => {
+//   return feedbackData.value.list.filter((item) => item.urgent && item.status === '待处理').length
+// })
 
 // ========== 监听器 ==========
 watch(
@@ -241,9 +243,10 @@ const handleVideoUpload = async (formData: UploadFormData) => {
     // 调用上传API
     const newVideo = await uploadVideo(uploadFormData)
 
+
     // 添加到本地列表
     videoList.value.unshift(newVideo)
-
+    await handleVideoRefresh()
     console.log('上传后视频数量:', videoList.value.length)
     return newVideo
   } catch (error) {
@@ -311,7 +314,6 @@ const handleFeedbackIgnored = async (itemId: number) => {
     // 更新本地状态
     feedbackData.value.list = feedbackData.value.list.filter((item) => item.id !== itemId)
     dashboardData.value.pendingFeedback = pendingCount.value
-    feedbackData.value.urgentCount = urgentCount.value
     feedbackData.value.totalCount = feedbackData.value.list.length
 
     console.log('反馈已忽略，当前待处理数量:', dashboardData.value.pendingFeedback)
@@ -331,7 +333,7 @@ const initVideoData = async () => {
     console.log('初始化视频数据...')
     videoLoading.value = true
     const videos = await fetchVideos()
-    videoList.value = videos
+    videoList.value = videos.data
     console.log('视频数据初始化完成，视频数量:', videos.length)
   } catch (error) {
     console.error('初始化视频数据失败:', error)
@@ -360,16 +362,18 @@ const fetchData = async () => {
 
     // 更新数据
     dashboardData.value = {
-      ...statsData,
-      mediaFiles: videoList.value.length, // 使用实际的视频数量
+      ...statsData.data,
+      // mediaFiles: videoList.value.length, // 使用实际的视频数量
     }
+    console.log(dashboardData.value)
+    console.log(chartDataResponse.data)
 
-    chartData.value = chartDataResponse
-    feedbackData.value = feedbackDataResponse
+    chartData.value = chartDataResponse.data
+    feedbackData.value = feedbackDataResponse.data
 
     // 确保pendingFeedback与实际的待处理数量一致
     dashboardData.value.pendingFeedback = pendingCount.value
-    feedbackData.value.urgentCount = urgentCount.value
+
 
     console.log('数据更新完成，待处理数量:', dashboardData.value.pendingFeedback)
   } catch (err) {
@@ -380,6 +384,12 @@ const fetchData = async () => {
     console.log('Loading状态设置为false')
   }
 }
+
+// const verify_admin=()=>{
+
+//   const response=await
+// }
+
 
 // ========== 组件挂载 ==========
 onMounted(async () => {

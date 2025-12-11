@@ -35,6 +35,7 @@ const routes = [
     path:'/admin',
     name:'admin',
     component:Admin,
+
   }
 
 ]
@@ -46,7 +47,7 @@ const router = createRouter({
 
 const checkAuth = async (token: string) => {
   try {
-  await authAPI.verifyToken(token);
+    await authAPI.verifyToken(token);
   }
   catch  {
     return false

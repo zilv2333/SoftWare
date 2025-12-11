@@ -95,7 +95,7 @@
             </div>
             <div class="video-info">
               <h3 class="video-title">{{ video.title }}</h3>
-              <p class="video-duration">{{ video.duration }}</p>
+              <p class="video-duration">{{ video.duration}}</p>
             </div>
           </div>
         </div>
@@ -232,7 +232,6 @@ const props = withDefaults(defineProps<ComponentPropsMap['home']>(),{
   }),
   username: 'test'
 })
-
 
 
 const md = new MarkdownIt(props.options)

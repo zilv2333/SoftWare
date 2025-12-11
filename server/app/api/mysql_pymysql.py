@@ -4,6 +4,10 @@ from typing import List, Dict, Optional
 from pymysql.cursors import DictCursor
 from .tools import hash_password
 
+from dbutils.persistent_db import PersistentDB
+
+
+
 class DatabaseConfig:
     """数据库配置类"""
     def __init__(self, host, user, password, database):
@@ -19,23 +23,38 @@ class DatabaseConnection:
         self.config = config
         self.connection = None
 
-    def get_connection(self):
-        """获取数据库连接"""
-        if not self.connection or self.connection.open == False:
-            self.connection = pymysql.connect(
-                host=self.config.host,
-                user=self.config.user,
-                password=self.config.password,
-                database=self.config.database,
-                cursorclass=DictCursor,
-                autocommit=False
-            )
-        return self.connection
+    # def get_connection(self):
+    #     """获取数据库连接"""
+    #     if not self.connection or self.connection.open == False:
+    #         self.connection = pymysql.connect(
+    #             host=self.config.host,
+    #             user=self.config.user,
+    #             password=self.config.password,
+    #             database=self.config.database,
+    #             cursorclass=DictCursor,
+    #             autocommit=False
+    #         )
+    #     return self.connection
 
-    def close(self):
-        """关闭数据库连接"""
-        if self.connection and self.connection.open:
-            self.connection.close()
+    def get_connection(self):
+        pool = PersistentDB(
+            creator=pymysql,
+            maxusage=1000,  # 单个连接最大使用次数
+            setsession=[],  # 可选的会话命令列表
+            ping=0,  # 检查连接是否可用（0=从不, 1=默认, 2=创建游标时, 4=执行查询时, 7=总是）
+            closeable=False,
+            threadlocal=None,  # 线程局部变量
+            host=self.config.host,
+            port=3306,
+            user=self.config.user,
+            password=self.config.password,
+            database=self.config.database,
+            charset='utf8mb4',
+            cursorclass=DictCursor
+        )
+        return pool.connection()
+
+
 
 
 class DatabaseInspector:
@@ -130,6 +149,41 @@ class UserManager:
             conn.rollback()
             print(f"更新用户失败: {e}")
             return False
+    def get_register_count_today(self):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+            SELECT COUNT(id) as registerCount 
+                FROM users 
+                WHERE DATE(created_at) = CURDATE();"""
+                           )
+            return cursor.fetchone()
+
+    def get_register_count_week(self):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""SELECT 
+                dates.date AS register_date,
+                COUNT(distinct lr.id) AS registerCount 
+            FROM (
+                SELECT CURDATE() - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS date
+                FROM 
+                    (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 
+                     UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS a
+                CROSS JOIN 
+                    (SELECT 0 AS a UNION ALL SELECT 1) AS b
+                CROSS JOIN 
+                    (SELECT 0 AS a UNION ALL SELECT 1) AS c
+            ) AS dates
+            LEFT JOIN users lr ON DATE(lr.created_at) = dates.date
+            WHERE dates.date BETWEEN CURDATE() - INTERVAL 6 DAY AND CURDATE()
+            GROUP BY dates.date
+            ORDER BY dates.date DESC;
+                           """)
+            return cursor.fetchall()
+
 
 
 class LoginManager:
@@ -171,6 +225,41 @@ class LoginManager:
                 JOIN users u ON lr.user_id = u.id
                 ORDER BY lr.login_time DESC
             """)
+            return cursor.fetchall()
+
+    def get_login_count_today(self):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+            SELECT COUNT(distinct user_id) as loginCount 
+                FROM login_records 
+                WHERE DATE(login_time) = CURDATE();"""
+                           )
+            return cursor.fetchone()
+
+    def get_login_count_week(self):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""SELECT 
+                dates.date AS login_date,
+                COUNT(distinct lr.user_id) AS loginCount 
+            FROM (
+                SELECT CURDATE() - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS date
+                FROM 
+                    (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 
+                     UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS a
+                CROSS JOIN 
+                    (SELECT 0 AS a UNION ALL SELECT 1) AS b
+                CROSS JOIN 
+                    (SELECT 0 AS a UNION ALL SELECT 1) AS c
+            ) AS dates
+            LEFT JOIN login_records lr ON DATE(lr.login_time) = dates.date
+            WHERE dates.date BETWEEN CURDATE() - INTERVAL 6 DAY AND CURDATE()
+            GROUP BY dates.date
+            ORDER BY dates.date DESC;
+                           """)
             return cursor.fetchall()
 
 
@@ -254,7 +343,7 @@ class HistoryManager:
                 WHERE hr.id = %s
                 ORDER BY r.created_at DESC
                     """,args=(id))
-            return cursor.fetchall()
+            return cursor.fetchone()
 
     def get_all_history_records(self):
         """获取所有历史记录"""
@@ -292,10 +381,21 @@ class ExampleVideo:
         conn = self.db_connection.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("""
-            SELECT id,name as title,annotation,size,url,duration,thumbnail
+            SELECT id,name as title,annotation,size,url,duration,thumbnail,created_at as uploadTime
             FROM video_records
                 """)
             return cursor.fetchall()
+
+    def delete_video_record(self, id):
+        conn = self.db_connection.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM video_records WHERE id = %s", (id,))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            conn.rollback()  # 回滚事务
+            return False
 
 
 class TrainingPlanManager:
@@ -459,12 +559,56 @@ class FeedbackManager:
                            """, (id,))
             return cursor.fetchall()
 
+    def delete_feedback_by_id(self, id):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        try:
+
+
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                DELETE FROM feedback
+                    where id = %s
+                        """,(id,))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            conn.rollback()
+
+            return False
+
+
     def get_all_feedback(self):  # 新增方法
         """获取所有用户反馈"""
         conn = self.db_connection.get_connection()
         with conn.cursor() as cursor:
-            cursor.execute("SELECT id,user_id, content,email,created_at FROM feedback")
+            cursor.execute("SELECT id,created_at as time,content,status FROM feedback")
             return cursor.fetchall()
+    def upload_feedback(self, id,status):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                sql = """update feedback set status = %s where id = %s"""
+                cursor.execute(sql, (status,id))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            conn.rollback()
+            print(f"<UNK>: {e}")
+
+    def get_pending_feedback(self):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            sql = """
+            SELECT id,created_at as time,content,status FROM feedback
+                WHERE status = '待处理'
+                    """
+            cursor.execute(sql)
+            return cursor.fetchall()
+
+
 
 class ClassManagementSystem:
     """班级管理系统主类"""
@@ -552,6 +696,7 @@ class ClassManagementSystem:
                         user_id INT NOT NULL,
                         content TEXT NOT NULL,
                         email TEXT ,
+                        status VARCHAR(10) DEFAULT "待处理" NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -574,7 +719,9 @@ class ClassManagementSystem:
 
             conn.commit()
 
-            self.user_manager.add_user('admin',hash_password('123456'),height=180,weight=70,role='admin')
+
+            if self.user_manager.get_user_by_username('admin') is None:
+                self.user_manager.add_user('admin',hash_password('123456'),height=180,weight=70,role='admin')
             return True
         
 

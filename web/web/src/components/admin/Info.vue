@@ -1,8 +1,8 @@
 <template>
   <div class="stats-cards">
-    <div 
-      v-for="(card, index) in cardsData" 
-      :key="index" 
+    <div
+      v-for="(card, index) in cardsData"
+      :key="index"
       class="stat-card"
       :class="`card-${index + 1}`"
     >
@@ -23,13 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import {  computed } from 'vue'
 
 //定义Props接口，用于接收附件传来的数据
 interface Props {
   data?: {
     loginCount: number
-    onlineUsers: number
+    registerCount: number
     pendingFeedback: number
     mediaFiles: number
   }
@@ -38,7 +38,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   data: () => ({
     loginCount: 0,
-    onlineUsers: 0,
+    registerCount: 0,
     pendingFeedback: 0,
     mediaFiles: 0
   })
@@ -76,9 +76,9 @@ const cardsData = computed<CardData[]>(() => [
   },
   {
     type: 'online',
-    title: '当前注册用户',
-    value: props.data.onlineUsers,
-    displayValue: new Intl.NumberFormat().format(props.data.onlineUsers),
+    title: '今日注册用户',
+    value: props.data.registerCount,
+    displayValue: new Intl.NumberFormat().format(props.data.registerCount),
     info: '峰值时段 16:00',
     icon: UserIcon
   },
@@ -87,7 +87,7 @@ const cardsData = computed<CardData[]>(() => [
     title: '待处理反馈',
     value: props.data.pendingFeedback,
     displayValue: new Intl.NumberFormat().format(props.data.pendingFeedback),
-    info: '2个未读需紧急处理', 
+    info: '2个未读需紧急处理',
     trendClass: 'trend-alert',
     icon: AlertIcon
   },
@@ -202,11 +202,11 @@ const cardsData = computed<CardData[]>(() => [
     gap: 16px;
     padding: 16px;
   }
-  
+
   .stat-card {
     padding: 16px;
   }
-  
+
   .card-value {
     font-size: 24px;
   }

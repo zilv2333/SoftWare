@@ -15,7 +15,7 @@
         <h4>上传视频</h4>
         <span class="upload-tip">支持 MP4, AVI, MOV 等格式，最大 2GB</span>
       </div>
-      
+
       <div class="upload-form">
         <!-- 视频名称输入 -->
         <div class="form-group">
@@ -51,7 +51,7 @@
           <label for="videoFile" class="form-label">
             选择视频文件 <span class="required">*</span>
           </label>
-          <div class="file-upload-area" 
+          <div class="file-upload-area"
                :class="{ 'drag-over': dragOver, 'has-file': uploadForm.file }"
                @click="triggerFileInput"
                @drop="handleFileDrop"
@@ -93,8 +93,8 @@
             <span v-if="uploading" class="loading-spinner"></span>
             {{ uploading ? '上传中...' : '上传至服务器' }}
           </button>
-          <button 
-            @click="resetUploadForm" 
+          <button
+            @click="resetUploadForm"
             class="cancel-btn"
             :disabled="uploading">
             重置
@@ -108,8 +108,8 @@
       <div class="section-header">
         <h4>视频列表 ({{ videos.length }})</h4>
         <div class="section-actions">
-          <button 
-            @click="refreshVideos" 
+          <button
+            @click="refreshVideos"
             class="refresh-btn"
             :disabled="loading">
             {{ loading ? '刷新中...' : '刷新列表' }}
@@ -137,7 +137,7 @@
               {{ formatDuration(video.duration) }}
             </div>
           </div>
-          
+
           <div class="video-info">
             <div class="video-name">{{ video.name }}</div>
             <div class="video-annotation" :title="video.annotation">
@@ -158,7 +158,7 @@
               </span> -->
             </div>
           </div>
-          
+
           <div class="video-actions">
             <button
               v-if="video.url"
@@ -179,7 +179,7 @@
             </button>
           </div>
         </div>
-        
+
         <!-- 空状态 -->
         <div v-if="videos.length === 0" class="empty-state">
           <div class="empty-icon">📹</div>
@@ -197,9 +197,9 @@
           <button @click="closePreview" class="close-btn">×</button>
         </div>
         <div class="modal-body">
-          <video 
+          <video
             v-if="previewVideoData.url"
-            :src="previewVideoData.url" 
+            :src="API_BASE_URL+previewVideoData.url"
             controls
             class="preview-video"
           >
@@ -215,8 +215,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed} from 'vue'
 
+const API_BASE_URL=import.meta.env.VITE_API_BASE_URL
 // ========== 接口定义 ==========
 interface VideoItem {
   id: number
@@ -274,8 +275,8 @@ const fileInput = ref<HTMLInputElement>()
 
 // ========== 计算属性 ==========
 const canUpload = computed(() => {
-  return uploadForm.value.name.trim() && 
-         uploadForm.value.file && 
+  return uploadForm.value.name.trim() &&
+         uploadForm.value.file &&
          !uploading.value &&
          Object.keys(formErrors.value).length === 0
 })
@@ -309,7 +310,7 @@ const handleFileSelect = (event: Event) => {
 const handleFileDrop = (event: DragEvent) => {
   event.preventDefault()
   dragOver.value = false
-  
+
   if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
     validateAndSetFile(event.dataTransfer.files[0])
   }
@@ -328,23 +329,23 @@ const handleDragOver = (event: DragEvent) => {
  */
 const validateAndSetFile = (file: File) => {
   clearError('file')
-  
+
   // 验证文件类型
   const allowedTypes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo']
   if (!allowedTypes.some(type => file.type.includes(type.replace('video/', '')))) {
     formErrors.value.file = '请选择有效的视频文件 (MP4, AVI, MOV 等格式)'
     return
   }
-  
+
   // 验证文件大小 (2GB)
   const maxSize = 2 * 1024 * 1024 * 1024
   if (file.size > maxSize) {
     formErrors.value.file = '文件大小不能超过 2GB'
     return
   }
-  
+
   uploadForm.value.file = file
-  
+
   // 如果还没有设置名称，使用文件名作为默认名称
   if (!uploadForm.value.name.trim()) {
     uploadForm.value.name = file.name.replace(/\.[^/.]+$/, "")
@@ -365,15 +366,15 @@ const clearError = (field: keyof FormErrors) => {
  */
 const validateForm = (): boolean => {
   formErrors.value = {}
-  
+
   if (!uploadForm.value.name.trim()) {
     formErrors.value.name = '请输入视频名称'
   }
-  
+
   if (!uploadForm.value.file) {
     formErrors.value.file = '请选择视频文件'
   }
-  
+
   return Object.keys(formErrors.value).length === 0
 }
 
@@ -382,7 +383,7 @@ const validateForm = (): boolean => {
  */
 const uploadVideo = async () => {
   if (!validateForm()) return
-  
+
   uploading.value = true
   try {
     await emit('video-upload', {
@@ -390,9 +391,9 @@ const uploadVideo = async () => {
       annotation: uploadForm.value.annotation.trim(),
       file: uploadForm.value.file!
     })
-    
+
     resetUploadForm()
-    
+
   } catch (error) {
     console.error('视频上传失败:', error)
     // 错误处理可以在这里添加用户提示
@@ -437,6 +438,7 @@ const closePreview = () => {
  */
 const refreshVideos = () => {
   // 这里可以触发父组件重新加载视频列表
+  emit('refresh')
   console.log('刷新视频列表')
 }
 
@@ -978,34 +980,34 @@ const formatDuration = (seconds: number): string => {
   .media-management {
     padding: 16px;
   }
-  
+
   .header {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .stats {
     align-self: stretch;
     justify-content: space-between;
   }
-  
+
   .video-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .video-actions {
     align-self: stretch;
     justify-content: flex-end;
   }
-  
+
   .video-meta {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .upload-actions {
     flex-direction: column;
   }

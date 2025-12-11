@@ -51,8 +51,8 @@
             </svg>
           </div>
           <div class="item-content">
-            <div class="content-title">{{ item.content.title }}</div>
-            <div class="content-desc">{{ item.content.desc }}</div>
+            <!-- <div class="content-title">{{ item.content.title }}</div> -->
+            <div class="content-desc">{{ item.content}}</div>
           </div>
           <div class="item-type">
             <span class="type-tag">{{ item.type }}</span>
@@ -124,7 +124,7 @@ import { ref, computed, watch } from 'vue'
 // 定义Props接口
 interface Props {
   pendingCount: number
-  urgentCount: number
+  urgentCount?: number
   feedbackList: FeedbackItem[]  // 接收父组件传递的列表
 }
 // 定义Emit接口
@@ -157,7 +157,7 @@ const selectedStatus = ref('')
 
 // 新增：分页相关状态
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(5)
 
 // 新增：获取所有唯一的反馈类型
 const uniqueTypes = computed(() => {
@@ -195,10 +195,6 @@ const currentPageData = computed(() => {
 
 
 
-// 新增：处理每页显示条数变化
-const handlePageSizeChange = () => {
-  currentPage.value = 1
-}
 
 // 新增：监听原始数据变化，重置筛选和分页
 watch(
@@ -213,7 +209,7 @@ watch(
 // 格式化时间显示，让数据更加工整
 const formatTime = (timeStr: string) => {
   const date = new Date(timeStr)
-  const now = new Date()
+  const now = new Date(new Date().getTime()+8 * 60 * 60 * 1000)
   const diffMs = now.getTime() - date.getTime()
   const diffMins = Math.floor(diffMs / (1000 * 60))
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
@@ -344,6 +340,7 @@ const handleIgnore = async (item: FeedbackItem) => {
 }
 
 .feedback-list {
+  height: 500px;
   padding: 15px 20px;
 }
 
@@ -552,7 +549,11 @@ const handleIgnore = async (item: FeedbackItem) => {
   gap: 12px;
   padding: 16px 0;
   border-top: 1px solid #f0f2f5;
-  margin-top: 10px;
+  margin-top: 288px;
+
+
+
+
 }
 
 .page-btn {

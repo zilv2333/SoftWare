@@ -5,36 +5,36 @@
       <div class="loading-spinner"></div>
       <span>图表加载中...</span>
     </div>
-    
+
     <!-- 错误状态 -->
     <div v-else-if="error" class="error-state">
       <span>{{ error }}</span>
       <button @click="initChart" class="retry-btn">重试</button>
     </div>
-    
+
     <!-- 空数据状态 -->
     <div v-else-if="!hasValidData" class="empty-state">
       <span>暂无数据</span>
     </div>
-    
+
     <!-- 正常显示 -->
     <div v-else>
       <div class="chart-header">
         <div class="chart-title">用户登录流量分析</div>
         <div class="time-filters">
-          <div 
+          <div
            class="time-filter active"
           >7天</div>
-         
+
         </div>
       </div>
-      
+
       <div class="date-range">{{ chartData.dateRange }}</div>
-      
+
       <div class="chart-wrapper">
         <canvas ref="chartCanvas"></canvas>
       </div>
-      
+
       <div class="chart-legend">
         <div class="legend-item">
           <div class="legend-color legend-login"></div>
@@ -42,7 +42,7 @@
         </div>
         <div class="legend-item">
           <div class="legend-color legend-active"></div>
-          <span>活跃用户 {{ chartData.totalActive.toLocaleString() }}</span>
+          <span>注册量 {{ chartData.totalRegister.toLocaleString() }}</span>
         </div>
       </div>
     </div>
@@ -51,17 +51,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
-import { Chart, type ChartConfiguration, type ChartData, type ChartOptions } from 'chart.js/auto'
+import { Chart, type ChartConfiguration } from 'chart.js/auto'
 
 // 定义Props接口
 interface Props {
   chartData: {
     loginData: number[]
-    activeData: number[]
+    registerData: number[]
     dates: string[]
     dateRange: string
     totalLogin: number
-    totalActive: number
+    totalRegister: number
   }
   loading?: boolean
 }
@@ -70,11 +70,11 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   chartData: () => ({
     loginData: [],
-    activeData: [],
+    registerData: [],
     dates: [],
     dateRange: '',
     totalLogin: 0,
-    totalActive: 0
+    totalRegister: 0
   })
 })
 
@@ -85,21 +85,22 @@ const isMounted = ref(false)
 
 // 计算属性：检查数据是否有效
 const hasValidData = computed(() => {
-  return props.chartData && 
-         Array.isArray(props.chartData.loginData) && 
+  return props.chartData &&
+         Array.isArray(props.chartData.loginData) &&
          props.chartData.loginData.length > 0 &&
-         Array.isArray(props.chartData.dates) && 
+         Array.isArray(props.chartData.dates) &&
          props.chartData.dates.length > 0
 })
 
 // 计算Y轴最大值
 const getYAxisMax = computed(() => {
-  if (!hasValidData.value) return 15000
-  
-  const allData = [...props.chartData.loginData, ...props.chartData.activeData]
+  if (!hasValidData.value) return 150
+
+  const allData = [...props.chartData.loginData, ...props.chartData.registerData]
   const maxValue = Math.max(...allData)
   // 向上取整到最近的3000的倍数
-  return Math.ceil(maxValue / 3000) * 3000 || 15000
+  // return Math.ceil(maxValue / 5) * 5 || 150
+  return maxValue
 })
 
 // 初始化图表
@@ -109,19 +110,19 @@ const initChart = () => {
       console.warn('图表数据未准备好，等待数据加载...')
       return
     }
-    
+
     const ctx = chartCanvas.value.getContext('2d')
     if (!ctx) {
       throw new Error('无法获取Canvas上下文')
     }
-    
+
     // 销毁之前的图表实例
     if (chartInstance.value) {
       chartInstance.value.destroy()
     }
-    
+
     console.log('初始化图表，数据:', props.chartData)
-    
+
     // 使用正确的 Chart.js 配置类型
     const config: ChartConfiguration<'line'> = {
       type: 'line',
@@ -143,8 +144,8 @@ const initChart = () => {
             fill: true
           },
           {
-            label: '活跃用户',
-            data: props.chartData.activeData,
+            label: '注册量',
+            data: props.chartData.registerData,
             borderColor: '#52c41a',
             backgroundColor: 'rgba(82, 196, 26, 0.1)',
             borderWidth: 2,
@@ -221,7 +222,7 @@ const initChart = () => {
           x: {
             grid: {
               display: false
-            }, 
+            },
             border: {
               display: false
             },
@@ -251,12 +252,12 @@ const initChart = () => {
         }
       }
     }
-    
+
     chartInstance.value = new Chart(ctx, config)
-    
+
     error.value = null
     console.log('图表初始化成功')
-    
+
   } catch (err) {
     error.value = '图表初始化失败: ' + (err instanceof Error ? err.message : '未知错误')
     console.error('图表初始化失败:', err)
@@ -266,7 +267,7 @@ const initChart = () => {
 // 更新图表数据
 const updateChartData = () => {
   if (!chartInstance.value || !hasValidData.value) return
-  
+
   // 安全地更新数据
   const chartData = chartInstance.value.data
   if (chartData) {
@@ -275,16 +276,16 @@ const updateChartData = () => {
       // 使用类型断言确保类型安全
       const datasets = chartData.datasets as any[]
       datasets[0].data = [...props.chartData.loginData]
-      datasets[1].data = [...props.chartData.activeData]
+      datasets[1].data = [...props.chartData.registerData]
     }
   }
-  
+
   // 更新Y轴最大值 - 使用 suggestedMax
   if (chartInstance.value.options.scales?.y) {
     const yScale = chartInstance.value.options.scales.y as any
     yScale.suggestedMax = getYAxisMax.value
   }
-  
+
   chartInstance.value.update()
 }
 
@@ -318,7 +319,7 @@ watch(() => props.loading, (isLoading) => {
 onMounted(() => {
   console.log('图表组件挂载')
   isMounted.value = true
-  
+
   // 等待数据准备好后初始化图表
   if (!props.loading && hasValidData.value) {
     nextTick(initChart)
@@ -473,16 +474,16 @@ onUnmounted(() => {
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .time-filters {
     width: 100%;
     justify-content: center;
   }
-  
+
   .login-chart-container {
     padding: 16px;
   }
-  
+
   .chart-wrapper {
     height: 250px;
   }
