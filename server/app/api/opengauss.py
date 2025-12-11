@@ -36,20 +36,24 @@ class DatabaseConnection:
     #
     #     return self.connection
     def get_connection(self):
+        def create_connection():
+            conn = psycopg2.connect(
+                host=self.config.host,
+                port=self.config.port,
+                user=self.config.user,
+                password=self.config.password,
+                database=self.config.database,
+                cursor_factory=RealDictCursor
+            )
+            return conn
         pool = PersistentDB(
-            creator=psycopg2,
+            creator=create_connection,
             maxusage=1000,  # 单个连接最大使用次数
             setsession=[],  # 可选的会话命令列表
             ping=0,  # 检查连接是否可用（0=从不, 1=默认, 2=创建游标时, 4=执行查询时, 7=总是）
             closeable=False,
             threadlocal=None,  # 线程局部变量
-            host=self.config.host,
-            port=self.config.port,
-            user=self.config.user,
-            password=self.config.password,
-            database=self.config.database,
-            client_encoding='utf8',
-            cursorclass=RealDictCursor
+
         )
         return pool.connection()
 
