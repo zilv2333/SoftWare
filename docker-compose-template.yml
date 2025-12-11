@@ -124,20 +124,7 @@ services:
     container_name: pullup_celery_worker
     environment:
       - FLASK_ENV=production
-      - MYSQL_HOST=mysql
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=lyxsb666
-      - MYSQL_DATABASE=app_db
-      - GS_PORT=5432
-      - GS_PASSWORD=YourStrongPassword123!
-      - GS_USERNAME=gaussdb
-      - GS_DATABASE=postgres
-      - GS_HOST=opengauss_db
 
-      - DataBase=opengauss
-
-      - DIFY_API_URL=
-      - DIFY_API_KEY=
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
