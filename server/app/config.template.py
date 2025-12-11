@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from .api.mysql_pymysql import DatabaseConfig
+from .api.mysql import DatabaseConfig
 from .api import opengauss
 import os
 JWT_SECRET_KEY='your-secret-key-change-in-production'

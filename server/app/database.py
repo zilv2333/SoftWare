@@ -1,6 +1,6 @@
 
 from . import config
-from .api.mysql_pymysql import DatabaseConfig, ClassManagementSystem
+from .api.mysql import DatabaseConfig, ClassManagementSystem
 from .api import opengauss
 
 # 创建系统实例
