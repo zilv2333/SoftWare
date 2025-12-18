@@ -34,10 +34,11 @@ services:
     container_name: software-server
     environment:
       - FLASK_ENV=production
-      - MYSQL_HOST=mysql
+      - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_USER=root
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=app_db
+      - MYSQL_PORT=${MYSQL_PORT}
       - GS_PORT=5432
       - GS_PASSWORD=${GS_PASSWORD}
       - GS_USERNAME=gaussdb
@@ -58,6 +59,57 @@ services:
     depends_on:
       - mysql
       - opengauss_db
+      - oceanbase
+
+
+  oceanbase:
+    image: oceanbase/oceanbase-ce:4.5.0.0-100000012025112711
+    container_name: software_oceanbase
+    environment:
+      - OB_SYS_PASSWORD=${OB_SYS_PASSWORD}
+      - MINI_MODE=true
+    ulimits:
+      nofile:
+        soft: 20000
+        hard: 20000
+    volumes:
+      - oceanbase_data:/root/obdata
+    networks:
+      - vue-network
+
+    entrypoint:  ["/bin/bash", "-c"]
+
+    command: >
+      '
+        # 1. 等待OceanBase自动启动
+        /usr/sbin/sshd 
+        /root/boot/start.sh &
+        echo "等待OceanBase启动..."
+      
+        for i in {1..30}; do
+          if obclient -h127.1 -uroot -P2881 -p"$OB_SYS_PASSWORD" -e "SELECT 1" 2>/dev/null; then
+            echo "✅ OceanBase已就绪"
+            break
+          fi
+          echo "等待中..."
+          sleep 5
+        done
+      
+        echo "________________________________"
+      
+        # 2. 执行初始化SQL - EOF必须单独一行
+        obclient -h127.1 -uroot -P2881 -p"$OB_SYS_PASSWORD" << "EOF"
+      SET GLOBAL time_zone = "+08:00";
+      CREATE DATABASE IF NOT EXISTS app_db;
+      SELECT "init completed" as status;
+      
+      EOF
+      
+      wait
+      
+      '
+
+
 
   mysql:
     image: mysql:8.0.17
@@ -131,6 +183,7 @@ services:
       - redis
       - opengauss_db
       - mysql
+      - oceanbase
     restart: always
 
     volumes:
@@ -151,4 +204,5 @@ volumes:
   uploads_volume:
   redis_data:
   logs_volume:
+  oceanbase_data:
 

@@ -16,6 +16,7 @@ COPY ./app/requirements.txt .
 # 安装 Python 依赖
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
+
 # 复制应用代码
-RUN echo "----" > /tmp/build.txt
+RUN echo "----${date}" > /tmp/build.txt
 COPY . .

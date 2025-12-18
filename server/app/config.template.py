@@ -30,6 +30,7 @@ if env == 'production':
         user=os.getenv('MYSQL_USER', 'xyc'),
         password=os.getenv('MYSQL_PASSWORD', '123456'),
         database=os.getenv('MYSQL_DATABASE', 'software'),
+        port=int(os.getenv('MYSQL_PORT', 3306)),
     )
 
 

@@ -10,11 +10,12 @@ from dbutils.persistent_db import PersistentDB
 
 class DatabaseConfig:
     """数据库配置类"""
-    def __init__(self, host, user, password, database):
+    def __init__(self, host, user, password, database,port=3306):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
+        self.port = int(port)
 
 
 class DatabaseConnection:
@@ -45,7 +46,7 @@ class DatabaseConnection:
             closeable=False,
             threadlocal=None,  # 线程局部变量
             host=self.config.host,
-            port=3306,
+            port=self.config.port,
             user=self.config.user,
             password=self.config.password,
             database=self.config.database,
