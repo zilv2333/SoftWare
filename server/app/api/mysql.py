@@ -342,7 +342,7 @@ class HistoryManager:
                 JOIN ratings r ON hr.rating_id = r.id
                 WHERE hr.id = %s
                 ORDER BY r.created_at DESC
-                    """,args=(id))
+                    """,(id,))
             return cursor.fetchone()
 
     def get_all_history_records(self):

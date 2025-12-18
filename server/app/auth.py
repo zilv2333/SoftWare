@@ -21,11 +21,8 @@ system=get_db(config.DataBase_Name)
 
 
 
-@auth_bp.route('/login', methods=['GET', 'POST', 'OPTIONS'])
+@auth_bp.route('/login', methods=[ 'POST'])
 def login():
-    if request.method == 'OPTIONS':
-        return '', 200
-
     try:
         data = request.get_json()
 
@@ -52,15 +49,7 @@ def login():
 
         # 生成JWT令牌
         access_token = create_access_token(identity=str(user['id']))
-        #############################################
-        # from flask_jwt_extended import decode_token
-        # try:
-        #     decoded = decode_token(access_token)
-        #     print(f"✅ Token 解码成功: {decoded}")
-        # except Exception as decode_error:
-        #     print(f"❌ Token 解码失败: {decode_error}")
-        #####################################################
-        # print(access_token)
+
         return success_response(
 
             data={

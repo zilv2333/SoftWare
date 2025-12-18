@@ -44,7 +44,7 @@ services:
       - GS_DATABASE=postgres
       - GS_HOST=opengauss_db
 
-      - DataBase=opengauss
+      - DATABASE=${DATABASE}
 
       - DIFY_API_URL=${DIFY_API_URL}
       - DIFY_API_KEY=${DIFY_API_KEY}
