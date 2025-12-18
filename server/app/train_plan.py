@@ -29,14 +29,10 @@ def train_plan():
 
         user_id = get_jwt_identity()
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
         data=request.json
@@ -62,14 +58,10 @@ def train_plan():
 def train_plan_list():
     try:
         user_id = get_jwt_identity()
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
 
@@ -91,14 +83,10 @@ def train_plan_list():
 def train_plan_update(id):
     try:
         user_id = get_jwt_identity()
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
         data=request.json
@@ -123,14 +111,10 @@ def train_plan_update(id):
 def train_plan_delete(id):
     try:
         user_id = get_jwt_identity()
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
         if system.training_plan_manager.delete_training_plan(id,user['id']):
@@ -146,15 +130,11 @@ def train_plan_delete(id):
 def train_plan_trained_dates():
     try:
         user_id = get_jwt_identity()
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
-        if not user:
-            return error_response('用户不存在', 404)
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
+        if user is None:
+            return error_response('用户不存在', 404)
         year=request.args.get('year',None)
         month=request.args.get('month',None)
 

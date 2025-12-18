@@ -60,14 +60,10 @@ def clear():
     user_id = get_jwt_identity()
 
     # 通过ID获取用户信息
-    users = system.user_manager.get_all_users()
-    user = None
+    # 通过ID获取用户信息
+    user = system.user_manager.get_user_by_id(user_id)
 
-    for u in users:
-        if int(u['id']) == int(user_id):
-            user = u
-            break
-    if not user:
+    if user is None:
         return error_response('用户不存在', 404)
     # if user_task.get(user_id):
     #
@@ -90,14 +86,10 @@ def upload():
     user_id = get_jwt_identity()
 
     # 通过ID获取用户信息
-    users = system.user_manager.get_all_users()
-    user = None
+    # 通过ID获取用户信息
+    user = system.user_manager.get_user_by_id(user_id)
 
-    for u in users:
-        if int(u['id']) == int(user_id):
-            user = u
-            break
-    if not user:
+    if user is None:
         return error_response('用户不存在', 404)
 
     if 'front_video' not in request.files or 'side_video' not in request.files:
@@ -182,14 +174,10 @@ def get_evaluation_result(task_id):
     user_id = get_jwt_identity()
 
     # 通过ID获取用户信息
-    users = system.user_manager.get_all_users()
-    user = None
+    # 通过ID获取用户信息
+    user = system.user_manager.get_user_by_id(user_id)
 
-    for u in users:
-        if int(u['id']) == int(user_id):
-            user = u
-            break
-    if not user:
+    if user is None:
         return error_response('用户不存在', 404)
 
 
@@ -290,14 +278,10 @@ def chat_stream():
     user_id = get_jwt_identity()
 
     # 通过ID获取用户信息
-    users = system.user_manager.get_all_users()
-    user = None
+    # 通过ID获取用户信息
+    user = system.user_manager.get_user_by_id(user_id)
 
-    for u in users:
-        if int(u['id']) == int(user_id):
-            user = u
-            break
-    if not user:
+    if user is None:
         return error_response('用户不存在', 404)
 
     conversation_id=redis_manager.get_conversation(user_id)
@@ -378,14 +362,10 @@ def save():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
         msg=request.json['message'].replace('*','').replace('#','').replace('-','')

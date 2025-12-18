@@ -104,6 +104,16 @@ class UserManager:
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             return cursor.fetchone()
 
+    def get_user_by_id(self, user_id):
+        """<UNK>"""
+        conn = self.db_connection.get_connection()
+        with conn.cursor() as cursor:
+            sql = """
+            SELECT * FROM users WHERE id = %s
+                """
+            cursor.execute(sql, (user_id,))
+            return cursor.fetchone()
+
     def get_all_users(self):
         """获取所有用户"""
         conn = self.db_connection.get_connection()

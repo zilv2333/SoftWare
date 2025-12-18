@@ -86,15 +86,10 @@ def upload():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        # print(user['role'])
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -175,15 +170,10 @@ def delete_video(id):
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        # print(user['role'])
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -216,15 +206,10 @@ def get_media_videos():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        # print(user['role'])
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -243,15 +228,10 @@ def dashboard_stats():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        # print(user['role'])
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -280,15 +260,9 @@ def dashboard_chart_data():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        user = system.user_manager.get_user_by_id(user_id)
 
-        # print(user['role'])
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -319,15 +293,10 @@ def dashboard_chart_data():
 def feedback_pending():
     try:
         user_id = get_jwt_identity()
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        # print(user['role'])
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -347,14 +316,10 @@ def feedback_all():
     try:
         user_id = get_jwt_identity()
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -379,14 +344,10 @@ def feedback_process(id):
 
         user_id = get_jwt_identity()
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)
@@ -409,14 +370,10 @@ def feedback_ignore(id):
 
         user_id = get_jwt_identity()
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
         if user['role'] != 'admin':
             return error_response('权限不足', 405)

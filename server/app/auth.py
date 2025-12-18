@@ -121,14 +121,9 @@ def get_profile():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user=None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user=u
-                break
+        user=system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
         return success_response(
@@ -154,9 +149,10 @@ def change_password():
         if not data:
             return error_response('请求数据不能为空')
 
-        users = system.user_manager.get_all_users()
-        user = next((u for u in users if int(u['id']) == int(user_id)), None)
-        if not user:
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
+
+        if user is None:
             return error_response('用户不存在', 404)
 
 
@@ -187,9 +183,10 @@ def update_simple_profile():
         if not data:
             return error_response('请求数据不能为空')
 
-        users = system.user_manager.get_all_users()
-        user = next((u for u in users if int(u['id']) == int(user_id)), None)
-        if not user:
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
+
+        if user is None:
             return error_response('用户不存在', 404)
 
         password=None
@@ -214,14 +211,10 @@ def refresh():
         user_id = get_jwt_identity()
 
         # 通过ID获取用户信息
-        users = system.user_manager.get_all_users()
-        user = None
-        for u in users:
-            if int(u['id']) == int(user_id):
-                user = u
-                break
+        # 通过ID获取用户信息
+        user = system.user_manager.get_user_by_id(user_id)
 
-        if not user:
+        if user is None:
             return error_response('用户不存在', 404)
 
 

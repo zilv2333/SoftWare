@@ -24,15 +24,10 @@ def get_media_videos():
     user_id = get_jwt_identity()
 
     # 通过ID获取用户信息
-    users = system.user_manager.get_all_users()
-    user = None
-    for u in users:
-        if int(u['id']) == int(user_id):
-            user = u
-            break
+    # 通过ID获取用户信息
+    user = system.user_manager.get_user_by_id(user_id)
 
-    # print(user['role'])
-    if not user:
+    if user is None:
         return error_response('用户不存在', 404)
 
     videos=system.video_manager.get_all_video_records()
