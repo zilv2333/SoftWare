@@ -17,7 +17,7 @@ DIFY_API_KEY=os.getenv('DIFY_API_KEY','')
 VIDEO_FOLDER='example/video'
 THUMBNAIL_FOLDER='example/thumbnail'
 env = os.getenv('FLASK_ENV', 'development')
-DataBase_Name = os.getenv('DataBase', 'mysql')
+DataBase_Name = os.getenv('DATABASE', 'mysql')
 REDIS_HOST=os.getenv('REDIS_HOST', 'localhost')
 REDIS_PORT=os.getenv('REDIS_PORT', 6379)
 

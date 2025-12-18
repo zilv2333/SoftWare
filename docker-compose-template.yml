@@ -36,18 +36,18 @@ services:
       - FLASK_ENV=production
       - MYSQL_HOST=mysql
       - MYSQL_USER=root
-      - MYSQL_PASSWORD=lyxsb666
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=app_db
       - GS_PORT=5432
-      - GS_PASSWORD=YourStrongPassword123!
+      - GS_PASSWORD=${GS_PASSWORD}
       - GS_USERNAME=gaussdb
       - GS_DATABASE=postgres
       - GS_HOST=opengauss_db
 
-      - DataBase=mysql
+      - DataBase=opengauss
 
-      - DIFY_API_URL=
-      - DIFY_API_KEY=
+      - DIFY_API_URL=${DIFY_API_URL}
+      - DIFY_API_KEY=${DIFY_API_KEY}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     networks:
@@ -86,25 +86,26 @@ services:
     container_name: software-opengauss
     restart: always
     environment:
-      - GS_PASSWORD=YourStrongPassword123!
+      - GS_PASSWORD=${GS_PASSWORD}
       - GS_PORT=5432
       - TZ=Asia/Shanghai
-
-
+      - GAUSSDATA=/var/lib/opengauss/data  # 数据目录
+      - GAUSSLOG=/var/lib/opengauss/log   # 日志目录
     volumes:
-
       - opengauss_data:/var/lib/opengauss
     privileged: true
     # 为容器分配足够的内存
     shm_size: '512MB'
     healthcheck: # 健康检查配置开始
-      test: [ "CMD-SHELL", "gsql -U myuser -d mydatabase -p 5432 -c 'SELECT 1;' > /dev/null 2>&1" ]
+      test: [ "CMD-SHELL", "gsql -U gaussdb -d postgres -p 5432 -c 'SELECT 1;' > /dev/null 2>&1" ]
       interval: 30s           # 每30秒检查一次
       timeout: 10s            # 每次检查的超时时间为10秒
       retries: 3              # 连续失败3次才标记为不健康
       start_period: 60s       # 容器启动后，等待60秒才开始健康检查
     networks:
       - vue-network
+
+
   redis:
     image: redis:7-alpine
     container_name: software_redis
@@ -118,13 +119,12 @@ services:
   celery-worker:
     build:
       context: ./server
-      dockerfile: docker/celery/Dockerfile     
+      dockerfile: docker/celery/Dockerfile
       cache_from:
         - sofeware-base:latest
     container_name: pullup_celery_worker
     environment:
       - FLASK_ENV=production
-
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:

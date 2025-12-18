@@ -4,3 +4,4 @@ config.py
 .venv
 .idea
 example/
+.env
