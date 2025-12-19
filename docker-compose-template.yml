@@ -27,9 +27,9 @@ services:
 
   # 如果需要后端 API，可以在这里添加
   backend:
-    build: 
+    build:
       context: ./server
-      dockerfile: docker/server/Dockerfile      
+      dockerfile: docker/server/Dockerfile
       cache_from:
         - software-base:latest
     image: server:1.0
@@ -59,82 +59,14 @@ services:
     volumes:
       - uploads_volume:/app/uploads
     depends_on:
-      - mysql
+
       - opengauss_db
-      - oceanbase
-
-
-  oceanbase:
-    image: oceanbase/oceanbase-ce:4.5.0.0-100000012025112711
-    container_name: software_oceanbase
-    environment:
-      - OB_SYS_PASSWORD=${OB_SYS_PASSWORD}
-      - MINI_MODE=true
-    ulimits:
-      nofile:
-        soft: 20000
-        hard: 20000
-    volumes:
-      - oceanbase_data:/root/obdata
-    networks:
-      vue-network:
-        ipv4_address: 172.18.0.100
-
-    entrypoint:  ["/bin/bash", "-c"]
-
-    command: >
-      '
-        # 1. 等待OceanBase自动启动
-        /usr/sbin/sshd 
-        /root/boot/start.sh &
-        echo "等待OceanBase启动..."
-      
-        for i in {1..30}; do
-          if obclient -h127.1 -uroot -P2881 -p"$OB_SYS_PASSWORD" -e "SELECT 1" 2>/dev/null; then
-            echo "✅ OceanBase已就绪"
-            break
-          fi
-          echo "等待中..."
-          sleep 5
-        done
-      
-        echo "________________________________"
-      
-        # 2. 执行初始化SQL - EOF必须单独一行
-        obclient -h127.1 -uroot -P2881 -p"$OB_SYS_PASSWORD" << "EOF"
-      SET GLOBAL time_zone = "+08:00";
-      CREATE DATABASE IF NOT EXISTS app_db;
-      SELECT "init completed" as status;
-      
-      EOF
-      
-      wait
-      
-      '
 
 
 
-  mysql:
-    image: mysql:8.0.17
-    container_name: software-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: lyxsb666
-      MYSQL_DATABASE: app_db
-      MYSQL_USER: root
-      TZ: Asia/Shanghai
 
 
-    networks:
-      - vue-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
-      timeout: 10s
-      retries: 10
-      start_period: 30s
-      interval: 10s
-    volumes:
-      - mysql_data:/var/lib/mysql
+
 
   opengauss_db:
     image: opengauss/opengauss:7.0.0-RC2.B015-openEuler22.03
@@ -151,12 +83,7 @@ services:
     privileged: true
     # 为容器分配足够的内存
     shm_size: '512MB'
-    healthcheck: # 健康检查配置开始
-      test: [ "CMD-SHELL", "gsql -U gaussdb -d postgres -p 5432 -c 'SELECT 1;' > /dev/null 2>&1" ]
-      interval: 30s           # 每30秒检查一次
-      timeout: 10s            # 每次检查的超时时间为10秒
-      retries: 3              # 连续失败3次才标记为不健康
-      start_period: 60s       # 容器启动后，等待60秒才开始健康检查
+
     networks:
       - vue-network
 
@@ -185,8 +112,7 @@ services:
     depends_on:
       - redis
       - opengauss_db
-      - mysql
-      - oceanbase
+
     restart: always
 
     volumes:

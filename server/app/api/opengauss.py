@@ -682,6 +682,61 @@ class ClassManagementSystem:
                     ) 
                         """)
 
+                #用户角色校验触发器
+                cursor.execute("""
+                    DO $$ 
+                    BEGIN 
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_trigger t 
+                            JOIN pg_class c ON t.tgrelid = c.oid 
+                            WHERE c.relname = 'users' AND t.tgname = 'check_user_role_trigger'
+                        ) THEN 
+                            -- 创建触发器函数（使用 $function$ 作为定界符）
+                            CREATE OR REPLACE FUNCTION check_user_role() 
+                            RETURNS TRIGGER AS $function$
+                            BEGIN
+                                IF NEW.role NOT IN ('admin', 'user') THEN
+                                    RAISE EXCEPTION 'Invalid role: %. Valid roles are: admin, user.', NEW.role;
+                                END IF;
+                                RETURN NEW;
+                            END;
+                            $function$ LANGUAGE plpgsql;
+                            
+                            -- 创建触发器
+                            CREATE TRIGGER check_user_role_trigger 
+                            BEFORE INSERT OR UPDATE ON users 
+                            FOR EACH ROW EXECUTE FUNCTION check_user_role();
+                        END IF;
+                    END $$;
+                """)
+                #防止删除被引用的评分记录触发器
+                cursor.execute("""
+                                    
+                    DO $$ 
+                    BEGIN 
+                        IF NOT EXISTS (SELECT 1 FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid WHERE c.relname='ratings' AND t.tgname='prevent_rating_deletion_trigger') THEN 
+                            CREATE OR REPLACE FUNCTION prevent_rating_deletion() RETURNS TRIGGER AS $func4$
+                            BEGIN IF EXISTS (SELECT 1 FROM history_records WHERE rating_id=OLD.id) THEN RAISE EXCEPTION '评分被引用，无法删除!'; END IF; RETURN OLD; END;
+                            $func4$ LANGUAGE plpgsql;
+                            CREATE TRIGGER prevent_rating_deletion_trigger BEFORE DELETE ON ratings FOR EACH ROW EXECUTE FUNCTION prevent_rating_deletion();
+                        END IF;
+                    END $$;
+                """)
+                #反馈状态审计触发器（先创建日志表）
+                cursor.execute("""
+                CREATE TABLE IF NOT EXISTS feedback_status_log (id SERIAL PRIMARY KEY, feedback_id INT NOT NULL, old_status VARCHAR(10), new_status VARCHAR(10), changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (SELECT 1 FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid WHERE c.relname='feedback' AND t.tgname='log_feedback_status_change_trigger') THEN 
+                        CREATE OR REPLACE FUNCTION log_feedback_status_change() RETURNS TRIGGER AS $func5$
+                        BEGIN IF OLD.status!=NEW.status THEN INSERT INTO feedback_status_log(feedback_id,old_status,new_status) VALUES(NEW.id,OLD.status,NEW.status); END IF; RETURN NEW; END;
+                        $func5$ LANGUAGE plpgsql;
+                        CREATE TRIGGER log_feedback_status_change_trigger AFTER UPDATE ON feedback FOR EACH ROW EXECUTE FUNCTION log_feedback_status_change();
+                    END IF;
+                END $$;
+                """)
+
 
             conn.commit()
             if self.user_manager.get_user_by_username('admin') is None:
