@@ -1,3 +1,5 @@
+#docker-compose模板
+#默认三个数据库都会启动，不需要可以删除相关的服务，同时在backend和celery-worker的启动依赖中删除相关的服务
 services:
   base:
     build:
@@ -29,7 +31,7 @@ services:
       context: ./server
       dockerfile: docker/server/Dockerfile      
       cache_from:
-        - sofware-base:latest
+        - software-base:latest
     image: server:1.0
     container_name: software-server
     environment:
@@ -174,7 +176,7 @@ services:
       context: ./server
       dockerfile: docker/celery/Dockerfile
       cache_from:
-        - sofeware-base:latest
+        - software-base:latest
     container_name: pullup_celery_worker
     environment:
       - FLASK_ENV=production
@@ -199,7 +201,7 @@ networks:
     driver: bridge  # 使用桥接网络[citation:6]
     ipam:
       config:
-        - subnet: 172.18.0.0/16
+        - subnet: 172.18.0.0/16  # 使用桥接网络[citation:6]
 
 volumes:
   vue-logs:

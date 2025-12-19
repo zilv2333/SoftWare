@@ -1,3 +1,5 @@
+#这个模板可以直接使用。
+
 from datetime import timedelta
 
 from .api.mysql import DatabaseConfig
