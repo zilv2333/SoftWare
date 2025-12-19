@@ -13,19 +13,21 @@ OpenGauss=opengauss.ClassManagementSystem(config.OG_db_config)
 
 # print("✅ 数据库初始化成功！")
 
-
-
-def get_db(db='mysql'):
+def init_db(db='mysql'):
     if db == 'mysql':
         if not Mysql.initialize():
             print("❌ 数据库初始化失败！请检查MySQL连接配置。")
             exit(1)
-
-        return Mysql
     elif  db == 'opengauss':
         if not OpenGauss.initialize():
             print("❌ 数据库初始化失败！请检查opengauss连接配置。")
             exit(1)
+
+
+def get_db(db='mysql'):
+    if db == 'mysql':
+        return Mysql
+    elif  db == 'opengauss':
         return OpenGauss
     return None
 

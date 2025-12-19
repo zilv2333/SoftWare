@@ -57,13 +57,12 @@ def create_app():
         }), 401
 
 
-    from .database import get_db
-    get_db()
+    from .database import init_db
+    init_db(config.DataBase_Name)
 
     # ... 其他配置（如数据库）
     os.makedirs(config.VIDEO_FOLDER, exist_ok=True)
     os.makedirs(config.THUMBNAIL_FOLDER,exist_ok=True)
     os.makedirs(config.UPLOAD_FOLDER,exist_ok=True)
 
-    CORS(app)  # 启用CORS支持[1,4](@ref)
     return app
