@@ -1,0 +1,15 @@
+name: Sync to Gitee
+on: [push] # 当有 push 事件时触发
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror to Gitee
+        uses: Yikun/hub-mirror-action@master # 一个流行的同步 Action
+        with:
+          src: github/zilv2333
+          dst: gitee/wsxxs233
+          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+          dst_token: ${{ secrets.GITEE_TOKEN }}
+          static_list: "SoftWare" # 明确指定要同步的仓库
+          force_update: true # 强制更新，解决历史差异
