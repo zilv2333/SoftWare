@@ -893,7 +893,7 @@ def process(front_path):
 # 使用示例
 if __name__ == "__main__":
 
-    print(process('./4.mp4'))
+    print(process("C:/Users/23835/Downloads/3-f.mp4"))
     # ============== 修改7: 使用带平滑的初始化 ==============
 
     # ====================================================

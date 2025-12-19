@@ -75,7 +75,8 @@ services:
     volumes:
       - oceanbase_data:/root/obdata
     networks:
-      - vue-network
+      vue-network:
+        ipv4_address: 172.18.0.100
 
     entrypoint:  ["/bin/bash", "-c"]
 
@@ -196,6 +197,9 @@ networks:
 
   vue-network:
     driver: bridge  # 使用桥接网络[citation:6]
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
 
 volumes:
   vue-logs:
