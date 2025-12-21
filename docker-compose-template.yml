@@ -59,10 +59,81 @@ services:
     volumes:
       - uploads_volume:/app/uploads
     depends_on:
-
+      - oceanbase
       - opengauss_db
+      - mysql
+
+  oceanbase:
+    image: oceanbase/oceanbase-ce:4.5.0.0-100000012025112711
+    container_name: software_oceanbase
+    environment:
+      - OB_SYS_PASSWORD=${OB_SYS_PASSWORD}
+      - MINI_MODE=true
+    ulimits:
+      nofile:
+        soft: 20000
+        hard: 20000
+    volumes:
+      - oceanbase_data:/root/obdata
+    networks:
+      vue-network:
+        ipv4_address: 172.18.0.100
+
+    entrypoint:  ["/bin/bash", "-c"]
+
+    command: >
+      '
+        # 1. 等待OceanBase自动启动
+        /usr/sbin/sshd 
+        /root/boot/start.sh &
+        echo "等待OceanBase启动..."
+      
+        for i in {1..30}; do
+          if obclient -h127.1 -uroot -P2881 -p"$OB_SYS_PASSWORD" -e "SELECT 1" 2>/dev/null; then
+            echo "✅ OceanBase已就绪"
+            break
+          fi
+          echo "等待中..."
+          sleep 5
+        done
+      
+        echo "________________________________"
+      
+        # 2. 执行初始化SQL - EOF必须单独一行
+        obclient -h127.1 -uroot -P2881 -p"$OB_SYS_PASSWORD" << "EOF"
+      SET GLOBAL time_zone = "+08:00";
+      CREATE DATABASE IF NOT EXISTS app_db;
+      SELECT "init completed" as status;
+      
+      EOF
+      
+      wait
+      
+      '
 
 
+
+  mysql:
+    image: mysql:8.0.17
+    container_name: software-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: lyxsb666
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: root
+      TZ: Asia/Shanghai
+
+
+    networks:
+      - vue-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+      interval: 10s
+    volumes:
+      - mysql_data:/var/lib/mysql
 
 
 
