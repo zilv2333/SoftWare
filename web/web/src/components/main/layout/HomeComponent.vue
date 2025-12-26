@@ -412,7 +412,7 @@ const flag=ref(true)
 // 提交视频进行评估
 const submitVideos = async () => {
   if (!canSubmit.value) return
-    if (evaluationResult.value) {
+    if (evaluationResult.value||chatMessages.value) {
     isReupload.value = true
     resetContext()
   }
@@ -501,69 +501,78 @@ const waitForAnalysis = async (taskId: string) => {
   try {
     uploadStatus.value = '分析视频中...'
 
-    // 轮询获取分析结果
-    const checkResult = async (): Promise<void> => {
+    const MAX_RETRIES = 50
+    const POLL_INTERVAL = 2000
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/evaluate/result/${taskId}`,
+        const response = await axios.get(
+          `${API_BASE_URL}/api/evaluate/result/${taskId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
             },
           }
         )
-        if (response.data.status === 'completed') {
-          // 分析完成，获取结果
-          evaluationResult.value = response.data.result
+
+        const { status, result, message } = response.data
+
+        if (status === 'completed') {
+          // 成功完成
+          evaluationResult.value = result
           chatEnabled.value = true
 
-          // 重置上传状态
+          // 重置状态
           uploading.value = false
           uploadProgress.value = 0
           uploadStatus.value = ''
           showUploadModalFlag.value = false
           isReupload.value = false
 
-
           sendMessage()
-
-        } else if (response.data.status === 'processing') {
-          // 仍在处理中，继续等待
-          setTimeout(checkResult, 2000)
-        } else {
-          // 处理失败
-          throw new Error(response.data.message || '分析失败')
+          return
+        } else if (status === 'failed') {
+          throw new Error(message || '分析任务失败')
+        } else if (status !== 'processing') {
+          throw new Error(`未知状态: ${status}`)
         }
+
+        // 如果还在处理中，显示进度
+        uploadStatus.value = `分析视频中... (${attempt})`
+
+        // 等待下一次轮询，除了最后一次尝试
+        if (attempt < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
+        }
+
       } catch (error) {
-        console.error('轮询错误:', error)
+        // 任何错误都终止轮询
         throw error
       }
     }
 
-    // 开始轮询
-    await checkResult()
+    // 超过最大尝试次数
+    throw new Error('分析超时，请稍后重试')
+
   } catch (error: unknown) {
     console.error('分析失败:', error)
-    uploadStatus.value = '分析失败，请重试'
-    if (error instanceof Error){
-        addBotMessage(
-        '视频分析失败：' + (error.message || '请稍后重试'),
-      )
-    }else{
-      addBotMessage(
-        '视频分析失败：' + ('请稍后重试'),
-      )
+
+    let errorMessage = '视频分析失败，请稍后重试'
+    if (error instanceof Error) {
+      errorMessage = `视频分析失败：${error.message}`
     }
 
+    uploadStatus.value = errorMessage
+    addBotMessage(errorMessage)
 
-    // 重置上传状态
-    setTimeout(() => {
-      uploading.value = false
-      uploadProgress.value = 0
-      uploadStatus.value = ''
-    }, 3000)
+    // 确保状态重置
+    uploading.value = false
+    uploadProgress.value = 0
+    uploadStatus.value = ''
+    showUploadModalFlag.value = false
+    isReupload.value = false
   }
 }
-
 
 
 // 添加机器人消息

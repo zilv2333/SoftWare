@@ -58,6 +58,7 @@ services:
     restart: unless-stopped  # 自动重启策略[citation:7]
     volumes:
       - uploads_volume:/app/uploads
+      - example_data:/app/example
     depends_on:
       - oceanbase
       - opengauss_db
@@ -208,4 +209,5 @@ volumes:
   redis_data:
   logs_volume:
   oceanbase_data:
+  example_data:
 
